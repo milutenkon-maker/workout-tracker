@@ -1,14 +1,43 @@
 <!DOCTYPE html>
+<html lang="uk">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Tracker</title>
 </head>
 <body>
-    <!-- Шапка з назвою-->
-    <!-- Форма додавання тренування-->
-    <!-- Список тренувань (шсторія за датами)-->
-    <!-- Блок статистики (кількість, час)-->
-    <!-- Підвал-->
+    <header>
+        <h1>Трекер тренувань</h1>
+    </header>
 
+    <main>
+        <section id="workout-form">
+            <h2>Форма додавання тренування</h2>
+            <form>
+                <label for ="workout-type">Тип тренування</label>>
+                <input type="text" id="workout-type" name="workout-type">
+                <label for="workout-date">Дата тренування</label>
+                <input type="date" id="workout-date" name="workout-date">
 
+            </form>
+        </section>>
+
+        <section id="ф-list-of-workouts">
+            <h2>Історія тренувань</h2>
+            <article>
+                <h3>субота 05.09.26 - тренуввання на верхню частину тіла</h3>
+                <p>тривалість: година</p>
+            </article>
+        </section>
+    </main>
+
+    <aside>
+        <h2>Статистика</h2>
+        <p>Загальна кількість тренувань: 10</p>
+        <p>Загальний час тренувань: 50 хвилин</p>
+    </aside>
+
+    <footer>
+        <p>Зроблено студенткою КПІ. Призначено для людей, які займаються силовими тренуваннями. 2026 рік. </p>
+    </footer>
 </body>

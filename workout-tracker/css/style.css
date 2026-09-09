@@ -1,0 +1,77 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.7;
+  font-size: 1rem;
+  color: #1a1a1a;
+  background-color: #f4f4f6;
+}
+
+header {
+  background-color: #1a1a1a;
+  padding: 1.5rem 2rem;
+  color: #ff6600;
+}
+
+header h1 {
+  margin: 0;
+  color: #ff6600;
+  font-size: 30px;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+
+#workout-form {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #cababa;
+  border-radius: 6px;
+  background-color: #ffffff;
+}
+
+
+.card,
+article {
+  padding: 14px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  background-color: #ffffff;
+}
+
+
+.type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #ff6600;
+  color: #000000;
+  border-radius: 4px;
+}
+
+aside {
+  padding: 1rem;
+}
+
+aside .stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ff6600;
+}
+
+footer {
+  font-size: 0.7rem;
+  color: grey;
+  padding: 1rem;
+}
+

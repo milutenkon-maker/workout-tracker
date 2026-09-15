@@ -13,10 +13,20 @@ body {
   background-color: #f4f4f6;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 header {
   background-color: #1a1a1a;
   padding: 1.5rem 2rem;
   color: #ff6600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 header h1 {
@@ -25,12 +35,12 @@ header h1 {
   font-size: 30px;
 }
 
-main {
-  max-width: 800px;
+/* Обгортка для десктопного макета */
+.layout {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
 }
-
 
 #workout-form {
   margin-bottom: 2rem;
@@ -40,7 +50,14 @@ main {
   background-color: #ffffff;
 }
 
+/* Контейнер для галереї карток (Крок 3 та 4) */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
 
+/* Стилі для самих карток */
 .card,
 article {
   padding: 14px;
@@ -49,7 +66,6 @@ article {
   margin-bottom: 1rem;
   background-color: #ffffff;
 }
-
 
 .type-badge {
   display: inline-block;
@@ -75,3 +91,22 @@ footer {
   padding: 1rem;
 }
 
+/* Планшет: 2 колонки */
+@media (min-width: 600px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Десктоп: 3 колонки та layout 3fr 1fr */
+@media (min-width: 1024px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 24px;
+  }
+}

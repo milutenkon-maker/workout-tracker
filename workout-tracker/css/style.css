@@ -35,7 +35,6 @@ header h1 {
   font-size: 30px;
 }
 
-/* Обгортка для десктопного макета */
 .layout {
   max-width: 1200px;
   margin: 0 auto;
@@ -50,14 +49,12 @@ header h1 {
   background-color: #ffffff;
 }
 
-/* Контейнер для галереї карток (Крок 3 та 4) */
 .cards {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-/* Стилі для самих карток */
 .card,
 article {
   padding: 14px;
@@ -91,14 +88,12 @@ footer {
   padding: 1rem;
 }
 
-/* Планшет: 2 колонки */
 @media (min-width: 600px) {
   .cards {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Десктоп: 3 колонки та layout 3fr 1fr */
 @media (min-width: 1024px) {
   .cards {
     grid-template-columns: repeat(3, 1fr);

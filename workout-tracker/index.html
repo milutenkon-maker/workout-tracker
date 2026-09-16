@@ -15,12 +15,18 @@
         <main>
             <section id="workout-form">
                 <h2>Форма додавання тренування</h2>
-                <form>
-                    <label for="workout-type">Тип тренування</label>
-                    <input type="text" id="workout-type" name="workout-type">
+                <form class="workout-form">
+                    <div class="form-group">
+                        <label for="workout-type">Тип тренування</label>
+                        <input type="text" id="workout-type" name="workout-type" placeholder="Наприклад: Силове">
+                    </div>
 
-                    <label for="workout-date">Дата тренування</label>
-                    <input type="date" id="workout-date" name="workout-date">
+                    <div class="form-group">
+                        <label for="workout-date">Дата тренування</label>
+                        <input type="date" id="workout-date" name="workout-date">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Додати тренування</button>
                 </form>
             </section>
 
@@ -28,7 +34,9 @@
                 <h2>Історія тренувань</h2>
                 <div class="cards">
                     <article>
-                        <h3><span class="type-badge">Верхня частина тіла</span> Субота 05.09.26 - тренування на верхню частину тіла</h3>
+                        <!-- Бейдж винесено за межі h3 для правильного відображення -->
+                        <span class="type-badge">Верхня частина тіла</span>
+                        <h3>Субота 05.09.26 — тренування на верхню частину тіла</h3>
                         <p>Тривалість: 1 година</p>
                     </article>
                 </div>
@@ -39,6 +47,14 @@
             <h2>Статистика</h2>
             <p>Загальна кількість тренувань: <span class="stat-number">10</span></p>
             <p>Загальний час тренувань: <span class="stat-number">50</span> хвилин</p>
+
+            <!-- Чітка вимога: Прогрес-бар -->
+            <div class="progress-section">
+                <p class="progress-label">Мета: <strong>10 з 12 тренувань</strong></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 83%;"></div>
+                </div>
+            </div>
         </aside>
     </div>
 

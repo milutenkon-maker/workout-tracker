@@ -1,35 +1,60 @@
-
 console.log('script.js підключено');
 
-//  Оголошення даних
+// Крок 1. Оголошення даних (масив тренувань)
 const workouts = [
   { type: 'Біг', minutes: 25, calories: 300 },
   { type: 'Плавання', minutes: 45, calories: 450 },
   { type: 'Йога', minutes: 70, calories: 200 }
 ];
 
-// Цикл for...of, який підсумовує загальну кількість спалених калорій
-let totalCalories = 0;
 
-for (const w of workouts) {
-  totalCalories += w.calories;
+const staticCard = document.querySelector('#workouts-list article');
+if (staticCard) {
+  staticCard.remove();
+}
 
-  // Умовна класифікація тренування за тривалістю
-  if (w.minutes < 30 && w.minutes > 0) {
-    console.log(`${w.type}: Тренування є коротким`);
-  } else if (w.minutes >= 30 && w.minutes <= 60) {
-    console.log(`${w.type}: Тренування є довгим`);
-  } else {
-    console.log(`${w.type}: Тренування є дуже довгим`);
+
+const listContainer = document.querySelector('#workouts-list');
+
+
+function renderWorkouts(items) { // Запускаємо малювання списку при завантаженні сторінки
+  if (!listContainer) return;
+
+  listContainer.innerHTML = ''; // Очищення контейнеру
+
+
+  for (const w of items) {
+
+    const card = document.createElement('article');
+
+    const title = document.createElement('h3');
+    title.textContent = w.type;
+
+    const details = document.createElement('p');
+    details.textContent = `\({w.minutes} хв,\){w.calories} ккал`;
+
+    card.append(title, details);
+
+
+    card.dataset.calories = w.calories;
+
+    if (w.minutes > 45) {
+      card.classList.add('long');
+    } else {
+      card.classList.add('short');
+    }
+
+
+    listContainer.append(card);
   }
 }
 
-console.log(`Загальна кількість спалених калорій: ${totalCalories}`);
 
-// Стрілкова функція для обчислення спалених калорій за хвилину
-// Функція приймає об'єкт тренування та повертає кількість калорій/хв
-const caloriesPerMinute = w => Math.round(w.calories / w.minutes);
+renderWorkouts(workouts);
 
-// Крок 7: Виклик стрілкової функції з реальними даними
-console.log(`Калорій за хвилину (біг): ${caloriesPerMinute(workouts[0])}`);
-console.log(`Калорій за хвилину (тестове): ${caloriesPerMinute({ calories: 500, minutes: 30 })}`);
+
+const totalCaloriesElem = document.querySelector('#total-calories');
+if (totalCaloriesElem) {
+  const totalCalories = workouts.reduce((sum, item) => sum + item.calories, 0);
+  totalCaloriesElem.textContent = `Загалом спалено калорій: ${totalCalories}`;
+}

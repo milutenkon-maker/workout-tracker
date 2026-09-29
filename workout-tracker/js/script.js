@@ -8,13 +8,13 @@ const workouts = [
 ];
 
 
-const staticCard = document.querySelector('#workouts-list article');
+const staticCard = document.querySelector('#list-of-workouts article');
 if (staticCard) {
   staticCard.remove();
 }
 
 
-const listContainer = document.querySelector('#workouts-list');
+const listContainer = document.querySelector('#list-of-workouts .cards');
 
 
 function renderWorkouts(items) { // Запускаємо малювання списку при завантаженні сторінки
@@ -31,7 +31,7 @@ function renderWorkouts(items) { // Запускаємо малювання сп
     title.textContent = w.type;
 
     const details = document.createElement('p');
-    details.textContent = `\({w.minutes} хв,\){w.calories} ккал`;
+    details.textContent = `${w.minutes} хв, ${w.calories} ккал`;
 
     card.append(title, details);
 
@@ -51,7 +51,6 @@ function renderWorkouts(items) { // Запускаємо малювання сп
 
 
 renderWorkouts(workouts);
-
 
 const totalCaloriesElem = document.querySelector('#total-calories');
 if (totalCaloriesElem) {

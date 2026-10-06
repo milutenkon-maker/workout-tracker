@@ -1,3 +1,46 @@
+const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
+
+function showLoading(isLoading) {
+  document.querySelector('#loading').hidden = !isLoading;
+  document.querySelector('#refreshBtn').disabled = isLoading;
+}
+
+function showError(message) {
+  const errorEl = document.querySelector('#error');
+  errorEl.textContent = message;
+  errorEl.hidden = false;
+}
+
+// Завантаження журналу тренувань з JSONPlaceholder:
+// https://jsonplaceholder.typicode.com/ 
+async function loadWorkouts() {
+  showLoading(true);
+  document.querySelector('#error').hidden = true;
+
+  try {
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error(`Сервер відповів кодом ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+
+    const apiWorkouts = data.map(item => ({
+      type: item.title,
+      details: item.completed ? 'Виконано ' : 'Не виконано '
+    }));
+
+    renderWorkouts(apiWorkouts);
+  } catch (error) {
+    showError('Журнал тренувань недоступний офлайн');
+    console.error(error);
+  } finally {
+    showLoading(false);
+  }
+}
+
 console.log('app.js підключено');
 
 // Крок 1. Оголошення даних (масив тренувань)
@@ -29,7 +72,7 @@ function renderWorkouts(items) {
     title.textContent = w.type;
 
     const details = document.createElement('p');
-    details.textContent = `${w.minutes} хв, ${w.calories} ккал`;
+    details.textContent = w.details ?? `${w.minutes} хв, ${w.calories} ккал`;
 
     card.append(title, details);
 
@@ -66,6 +109,8 @@ const calcResultElem = document.querySelector('#calories-per-minute');
 
 // Обробка сабміту форми
 form.addEventListener('submit', (event) => {
+
+    console.log('Форма відправлена');
   // Скасування перезавантаження
   event.preventDefault();
 
@@ -73,6 +118,7 @@ form.addEventListener('submit', (event) => {
   const type = typeInput.value;
   const minutes = Number(minutesInput.value);
   const calories = Number(caloriesInput.value);
+  console.log(type, minutes, calories);
 
   // Створити об'єкт та додати в масив
   const newWorkout = {
@@ -80,6 +126,9 @@ form.addEventListener('submit', (event) => {
     minutes: minutes,
     calories: calories
   };
+
+  console.log(type, minutes, calories);
+
   workouts.push(newWorkout);
 
   // Перемалювати список та оновити підсумок
@@ -105,7 +154,7 @@ caloriesInput.addEventListener('input', () => {
   if (caloriesInput.value !== '' && (caloriesVal <= 0 || caloriesVal > 2000)) {
     caloriesInput.setCustomValidity('Кількість калорій має бути від 1 до 2000 ккал!');
   } else {
-    caloriesInput.setCustomValidity(''); 
+    caloriesInput.setCustomValidity('');
   }
 });
 
@@ -125,3 +174,6 @@ function updateCaloriesPerMinute() {
 
 minutesInput.addEventListener('input', updateCaloriesPerMinute);
 caloriesInput.addEventListener('input', updateCaloriesPerMinute);
+
+document.querySelector('#refreshBtn').addEventListener('click', loadWorkouts);
+loadWorkouts();

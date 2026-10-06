@@ -48,6 +48,9 @@
 
             <section id="list-of-workouts">
                 <h2>Історія тренувань</h2>
+                    <button id="refreshBtn" type="button" class="btn-primary">Оновити</button>
+                    <p id="loading" hidden>Завантаження…</p>
+                    <p id="error" hidden></p>
                 <div class="cards">
                     <article>
                         <!-- Бейдж винесено за межі h3 для правильного відображення -->
@@ -65,7 +68,7 @@
             <p>Загальний час тренувань: <span class="stat-number">50</span> хвилин</p>
             <p id="total-calories">Загалом спалено калорій: 0</p>
 
-            
+
             <div class="progress-section">
                 <p class="progress-label">Мета: <strong>10 з 12 тренувань</strong></p>
                 <div class="progress-bar">

@@ -1,4 +1,59 @@
+
+// Обрано Vue 3: шаблон схожий на звичайний HTML, а дані можна змінювати напряму,
+// тому код з практикуму 7 переносити легше, ніж у React (без JSX і Babel).
+
+console.log('app.js підключено');
+
 const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
+
+// Функцію renderWorkouts (практикум 7) видалено: список тепер малює
+// компонент WorkoutRow через v-for, а сума калорій - це computed totalCalories.
+
+
+const WorkoutRow = {
+  props: ['type', 'minutes', 'calories', 'details'],
+  computed: {
+    // Похідне значення варіанта 19: калорії за хвилину
+    caloriesPerMinute() {
+      if (this.minutes > 0 && this.calories > 0) {
+        return (this.calories / this.minutes).toFixed(1);
+      }
+      return null;
+    },
+    lengthClass() {
+      return this.minutes > 45 ? 'long' : 'short';
+    }
+  },
+  template: `
+    <article :class="lengthClass" :data-calories="calories">
+      <h3>{{ type }}</h3>
+      <p v-if="details">{{ details }}</p>
+      <p v-else>{{ minutes }} хв, {{ calories }} ккал</p>
+      <p v-if="caloriesPerMinute">{{ caloriesPerMinute }} ккал/хв</p>
+    </article>`
+};
+
+
+const vm = Vue.createApp({
+  components: { WorkoutRow },
+
+  data() {
+    return {
+      workouts: [
+        { id: 1, type: 'Біг',      minutes: 25, calories: 300 },
+        { id: 2, type: 'Плавання', minutes: 45, calories: 450 },
+        { id: 3, type: 'Йога',     minutes: 70, calories: 200 }
+      ]
+    };
+  },
+
+  computed: {
+    totalCalories() {
+      return this.workouts.reduce((sum, w) => sum + (w.calories || 0), 0);
+    }
+  }
+}).mount('#app');
+
 
 function showLoading(isLoading) {
   document.querySelector('#loading').hidden = !isLoading;
@@ -12,7 +67,7 @@ function showError(message) {
 }
 
 // Завантаження журналу тренувань з JSONPlaceholder:
-// https://jsonplaceholder.typicode.com/ 
+// https://jsonplaceholder.typicode.com/
 async function loadWorkouts() {
   showLoading(true);
   document.querySelector('#error').hidden = true;
@@ -27,12 +82,12 @@ async function loadWorkouts() {
     const data = await response.json();
     console.log(data);
 
-    const apiWorkouts = data.map(item => ({
+    // Присвоєння нового масиву реактивне: Vue сам перемалює список
+    vm.workouts = data.map(item => ({
+      id: item.id,
       type: item.title,
-      details: item.completed ? 'Виконано ' : 'Не виконано '
+      details: item.completed ? 'Виконано' : 'Не виконано'
     }));
-
-    renderWorkouts(apiWorkouts);
   } catch (error) {
     showError('Журнал тренувань недоступний офлайн');
     console.error(error);
@@ -41,103 +96,23 @@ async function loadWorkouts() {
   }
 }
 
-console.log('app.js підключено');
 
-// Крок 1. Оголошення даних (масив тренувань)
-const workouts = [
-  { type: 'Біг', minutes: 25, calories: 300 },
-  { type: 'Плавання', minutes: 45, calories: 450 },
-  { type: 'Йога', minutes: 70, calories: 200 }
-];
-
-// Видалення статичного прикладу
-const staticCard = document.querySelector('#list-of-workouts article');
-if (staticCard) {
-  staticCard.remove();
-}
-
-// Пошук контейнера для виводу карток тренувань
-const listContainer = document.querySelector('#list-of-workouts .cards');
-
-// Функція рендеру
-function renderWorkouts(items) {
-  if (!listContainer) return;
-
-  listContainer.innerHTML = ''; // Очищення контейнеру
-
-  for (const w of items) {
-    const card = document.createElement('article');
-
-    const title = document.createElement('h3');
-    title.textContent = w.type;
-
-    const details = document.createElement('p');
-    details.textContent = w.details ?? `${w.minutes} хв, ${w.calories} ккал`;
-
-    card.append(title, details);
-
-    card.dataset.calories = w.calories;
-
-    if (w.minutes > 45) {
-      card.classList.add('long');
-    } else {
-      card.classList.add('short');
-    }
-
-    listContainer.append(card);
-  }
-}
-
-// Початковий рендер списку
-renderWorkouts(workouts);
-
-// Підсумковий елемент калорій
-const totalCaloriesElem = document.querySelector('#total-calories');
-if (totalCaloriesElem) {
-  const totalCalories = workouts.reduce((sum, item) => sum + item.calories, 0);
-  totalCaloriesElem.textContent = `Загалом спалено калорій: ${totalCalories}`;
-}
-
-
-// Вибір елементів форми
 const form = document.querySelector('.workout-form');
 const typeInput = document.querySelector('#workout-type');
 const minutesInput = document.querySelector('#workout-minutes');
 const caloriesInput = document.querySelector('#workout-calories');
 const calcResultElem = document.querySelector('#calories-per-minute');
 
-
-// Обробка сабміту форми
 form.addEventListener('submit', (event) => {
-
-    console.log('Форма відправлена');
-  // Скасування перезавантаження
+  // Скасування перезавантаження сторінки
   event.preventDefault();
 
-  // Зчитати значення полів
   const type = typeInput.value;
   const minutes = Number(minutesInput.value);
   const calories = Number(caloriesInput.value);
-  console.log(type, minutes, calories);
 
-  // Створити об'єкт та додати в масив
-  const newWorkout = {
-    type: type,
-    minutes: minutes,
-    calories: calories
-  };
-
-  console.log(type, minutes, calories);
-
-  workouts.push(newWorkout);
-
-  // Перемалювати список та оновити підсумок
-  renderWorkouts(workouts);
-
-  if (totalCaloriesElem) {
-    const totalCalories = workouts.reduce((sum, item) => sum + item.calories, 0);
-    totalCaloriesElem.textContent = `Загалом спалено калорій: ${totalCalories}`;
-  }
+  // Пряма зміна реактивного масиву: Vue сам додасть картку і перерахує суму
+  vm.workouts.push({ id: Date.now(), type, minutes, calories });
 
   // Очистити форму
   form.reset();
@@ -145,7 +120,6 @@ form.addEventListener('submit', (event) => {
     calcResultElem.textContent = '0'; // Скидаємо розраховані ккал/хв
   }
 });
-
 
 // Валідація калорій
 caloriesInput.addEventListener('input', () => {
@@ -158,15 +132,13 @@ caloriesInput.addEventListener('input', () => {
   }
 });
 
-
-// перерахунок ккал/хв
+// Перерахунок ккал/хв під час введення в форму
 function updateCaloriesPerMinute() {
   const minutes = Number(minutesInput.value);
   const calories = Number(caloriesInput.value);
 
   if (minutes > 0 && calories > 0) {
-    const rate = (calories / minutes).toFixed(1);
-    calcResultElem.textContent = rate;
+    calcResultElem.textContent = (calories / minutes).toFixed(1);
   } else {
     calcResultElem.textContent = '0';
   }
@@ -175,5 +147,6 @@ function updateCaloriesPerMinute() {
 minutesInput.addEventListener('input', updateCaloriesPerMinute);
 caloriesInput.addEventListener('input', updateCaloriesPerMinute);
 
+// ---------- Запуск ----------
 document.querySelector('#refreshBtn').addEventListener('click', loadWorkouts);
 loadWorkouts();

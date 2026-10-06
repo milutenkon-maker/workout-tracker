@@ -51,22 +51,26 @@
                     <button id="refreshBtn" type="button" class="btn-primary">Оновити</button>
                     <p id="loading" hidden>Завантаження…</p>
                     <p id="error" hidden></p>
-                <div class="cards">
-                    <article>
-                        <!-- Бейдж винесено за межі h3 для правильного відображення -->
-                        <span class="type-badge">Верхня частина тіла</span>
-                        <h3>Субота 05.09.26 — тренування на верхню частину тіла</h3>
-                        <p>Тривалість: 1 година</p>
-                    </article>
-                </div>
-            </section>
+                    <div id="app">
+                        <div class="cards">
+                        <workout-row
+                            v-for="w in workouts"
+                            :key="w.id"
+                            :type="w.type"
+                            :minutes="w.minutes"
+                            :calories="w.calories"
+                            :details="w.details">
+                        </workout-row>
+                        </div>
+                        <p id="total-calories">Загалом спалено калорій: {{ totalCalories }}</p>
+                    </div>
+                    </section>
         </main>
 
         <aside>
             <h2>Статистика</h2>
             <p>Загальна кількість тренувань: <span class="stat-number">10</span></p>
             <p>Загальний час тренувань: <span class="stat-number">50</span> хвилин</p>
-            <p id="total-calories">Загалом спалено калорій: 0</p>
 
 
             <div class="progress-section">
@@ -81,6 +85,7 @@
     <footer>
         <p>Зроблено студенткою КПІ. Призначено для людей, які займаються силовими тренуваннями. 2026 рік.</p>
     </footer>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-console.log('script.js підключено');
+console.log('app.js підключено');
 
 // Крок 1. Оголошення даних (масив тренувань)
 const workouts = [
@@ -105,7 +105,7 @@ caloriesInput.addEventListener('input', () => {
   if (caloriesInput.value !== '' && (caloriesVal <= 0 || caloriesVal > 2000)) {
     caloriesInput.setCustomValidity('Кількість калорій має бути від 1 до 2000 ккал!');
   } else {
-    caloriesInput.setCustomValidity(''); // Порожній рядок скидає помилку!
+    caloriesInput.setCustomValidity(''); 
   }
 });
 

@@ -134,6 +134,13 @@ footer {
   padding: 1rem;
 }
 
+#workoutChart {
+    max-width: 100%;
+    height: auto;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
 @media (min-width: 600px) {
   .cards {
     grid-template-columns: repeat(2, 1fr);

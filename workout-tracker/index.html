@@ -28,6 +28,11 @@
                     </div>
 
                     <div class="form-group">
+                    <label for="workout-date">Дата</label>
+                    <input type="date" id="workout-date" name="workout-date" required>
+                    </div>
+
+                    <div class="form-group">
                         <label for="workout-minutes">Тривалість (хвилин)</label>
                         <input type="number" id="workout-minutes" name="workout-minutes" min="1" required placeholder="Наприклад: 45">
                     </div>
@@ -37,7 +42,6 @@
                         <input type="number" id="workout-calories" name="workout-calories" min="1" required placeholder="Наприклад: 300">
                     </div>
 
-                    <!-- Блок для живого виводу показника ккал/хв (згідно з Кроком 19) -->
                     <div class="form-group">
                         <p class="calc-info">Інтенсивність: <strong id="calories-per-minute">0</strong> ккал/хв</p>
                     </div>
@@ -51,11 +55,18 @@
                     <button id="refreshBtn" type="button" class="btn-primary">Оновити</button>
                     <p id="loading" hidden>Завантаження…</p>
                     <p id="error" hidden></p>
+
+                    <section id="chart-section">
+                    <h2>Тривалість тренувань за днями тижня</h2>
+                    <canvas id="workoutChart" width="600" height="300"></canvas>
+                    </section>
+
                     <div id="app">
                         <div class="cards">
                         <workout-row
                             v-for="w in workouts"
                             :key="w.id"
+                            :id="w.id"
                             :type="w.type"
                             :minutes="w.minutes"
                             :calories="w.calories"

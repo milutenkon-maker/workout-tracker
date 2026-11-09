@@ -5,97 +5,37 @@
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трекер тренувань</title>
+    <style>
+        .spa-nav {
+            display: flex;
+            gap: 20px;
+            background: #2f7d32;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+        }
+        .spa-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Трекер тренувань</h1>
     </header>
 
-    <div class="layout">
-        <main>
-            <section id="workout-form">
-                <h2>Форма додавання тренування</h2>
-                <form class="workout-form">
-                    <div class="form-group">
-                        <label for="workout-type">Тип тренування</label>
-                        <select id="workout-type" name="workout-type" required>
-                            <option value="">-- Оберіть тип --</option>
-                            <option value="Силове">Силове</option>
-                            <option value="Кардіо">Кардіо</option>
-                            <option value="Біг">Біг</option>
-                            <option value="Йога">Йога</option>
-                        </select>
-                    </div>
+    <nav class="spa-nav">
+        <a href="/" data-link>Журнал тренувань</a>
+        <a href="/stats" data-link>Сумарна статистика</a>
+    </nav>
 
-                    <div class="form-group">
-                    <label for="workout-date">Дата</label>
-                    <input type="date" id="workout-date" name="workout-date" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="workout-minutes">Тривалість (хвилин)</label>
-                        <input type="number" id="workout-minutes" name="workout-minutes" min="1" required placeholder="Наприклад: 45">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="workout-calories">Спалені калорії (ккал)</label>
-                        <input type="number" id="workout-calories" name="workout-calories" min="1" required placeholder="Наприклад: 300">
-                    </div>
-
-                    <div class="form-group">
-                        <p class="calc-info">Інтенсивність: <strong id="calories-per-minute">0</strong> ккал/хв</p>
-                    </div>
-
-                    <button type="submit" class="btn-primary">Додати тренування</button>
-                </form>
-            </section>
-
-            <section id="list-of-workouts">
-                <h2>Історія тренувань</h2>
-                    <button id="refreshBtn" type="button" class="btn-primary">Оновити</button>
-                    <p id="loading" hidden>Завантаження…</p>
-                    <p id="error" hidden></p>
-
-                    <section id="chart-section">
-                    <h2>Тривалість тренувань за днями тижня</h2>
-                    <canvas id="workoutChart" width="600" height="300"></canvas>
-                    </section>
-
-                    <div id="app">
-                        <div class="cards">
-                        <workout-row
-                            v-for="w in workouts"
-                            :key="w.id"
-                            :id="w.id"
-                            :type="w.type"
-                            :minutes="w.minutes"
-                            :calories="w.calories"
-                            :details="w.details">
-                        </workout-row>
-                        </div>
-                        <p id="total-calories">Загалом спалено калорій: {{ totalCalories }}</p>
-                    </div>
-                    </section>
-        </main>
-
-        <aside>
-            <h2>Статистика</h2>
-            <p>Загальна кількість тренувань: <span class="stat-number">10</span></p>
-            <p>Загальний час тренувань: <span class="stat-number">50</span> хвилин</p>
-
-
-            <div class="progress-section">
-                <p class="progress-label">Мета: <strong>10 з 12 тренувань</strong></p>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 83%;"></div>
-                </div>
-            </div>
-        </aside>
-    </div>
+    <main id="app-root"></main>
 
     <footer>
         <p>Зроблено студенткою КПІ. Призначено для людей, які займаються силовими тренуваннями. 2026 рік.</p>
     </footer>
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="js/app.js"></script>
 </body>

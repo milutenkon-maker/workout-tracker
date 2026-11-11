@@ -1,6 +1,6 @@
 console.log('app.js підключено (SPA Mode)');
 
-const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
+const API_URL = '/api/workouts';
 
 // Початкові дані
 const initialWorkouts = [
@@ -312,11 +312,11 @@ async function loadWorkouts() {
     for (const item of data) {
       await addItemDB({
         id: item.id,
-        type: item.title,
-        minutes: 30,
-        calories: item.completed ? 300 : 150,
-        details: item.completed ? 'Виконано' : 'Не виконано',
-        date: new Date().toISOString().slice(0, 10)
+        type: item.type,
+        minutes: item.minutes,
+        calories: item.calories,
+        details: item.details || 'З власного API',
+        date: item.date
       });
     }
     await refreshUI();

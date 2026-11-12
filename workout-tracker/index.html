@@ -1,86 +1,42 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Трекер тренувань — SPA</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер тренувань</title>
+    <style>
+        .spa-nav {
+            display: flex;
+            gap: 20px;
+            background: #2f7d32;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+        }
+        .spa-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <div id="app">
-    <header class="header">
-      <h1>Трекер тренувань</h1>
-      <nav class="nav">
-        <a href="/" @click.prevent="navigate('/')" :class="{ active: currentRoute === '/' }">Головна</a>
-        <a href="/stats" @click.prevent="navigate('/stats')" :class="{ active: currentRoute === '/stats' }">Статистика</a>
-      </nav>
+    <header>
+        <h1>Трекер тренувань</h1>
     </header>
 
-    <main class="container">
-      <!-- Сторінка історії тренувань -->
-      <section v-if="currentRoute === '/'" class="page">
-        <h2>Додати тренування</h2>
-        <form @submit.prevent="addWorkout" class="form">
-          <label>
-            Тип тренування:
-            <select v-model="newWorkout.type" required>
-              <option value="" disabled>-- Оберіть тип --</option>
-              <option value="Біг">Біг</option>
-              <option value="Плавання">Плавання</option>
-              <option value="Йога">Йога</option>
-              <option value="Силове">Силове тренування</option>
-              <option value="Кардіо">Кардіо</option>
-            </select>
-          </label>
+    <nav class="spa-nav">
+        <a href="/" data-link>Журнал тренувань</a>
+        <a href="/stats" data-link>Сумарна статистика</a>
+    </nav>
 
-          <label>
-            Тривалість (хвилин):
-            <input type="number" v-model.number="newWorkout.minutes" placeholder="45" min="1" required>
-          </label>
+    <main id="app-root"></main>
 
-          <label>
-            Спалені калорії (ккал):
-            <input type="number" v-model.number="newWorkout.calories" placeholder="300" min="1" required>
-          </label>
+    <footer>
+        <p>Зроблено студенткою КПІ. Призначено для людей, які займаються силовими тренуваннями. 2026 рік.</p>
+    </footer>
 
-          <button type="submit" class="btn">Додати тренування</button>
-        </form>
-
-        <h2>Історія тренувань</h2>
-        <ul class="workout-list">
-          <li v-for="item in workouts" :key="item.id" class="workout-item">
-            <div>
-              <strong>{{ item.type }}</strong> — {{ item.minutes }} хв, {{ item.calories }} ккал
-              <div class="date">{{ item.date }}</div>
-            </div>
-            <button @click="deleteWorkout(item.id)" class="btn-delete">Видалити</button>
-          </li>
-          <li v-if="workouts.length === 0" class="empty">Записів поки немає</li>
-        </ul>
-      </section>
-
-      <!-- Сторінка статистики -->
-      <section v-else-if="currentRoute === '/stats'" class="page">
-        <h2>Статистика тренувань</h2>
-        <div class="stats-cards">
-          <div class="card">
-            <h3>Всього тренувань</h3>
-            <p>{{ totalWorkouts }}</p>
-          </div>
-          <div class="card">
-            <h3>Загальний час</h3>
-            <p>{{ totalMinutes }} хв</p>
-          </div>
-          <div class="card">
-            <h3>Спалено калорій</h3>
-            <p>{{ totalCalories }} ккал</p>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script src="js/app.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

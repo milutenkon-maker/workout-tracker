@@ -1,8 +1,7 @@
-console.log('app.js підключено (SPA Mode)');
+console.log('app.js підключено');
 
-const API_URL = '/api/workouts';
+const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
 
-// Початкові дані
 const initialWorkouts = [
   { id: 1, type: 'Біг', minutes: 25, calories: 300, date: '2026-10-26' },
   { id: 2, type: 'Плавання', minutes: 45, calories: 450, date: '2026-10-27' },
@@ -10,25 +9,6 @@ const initialWorkouts = [
 ];
 
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
-
-
-function saveToLocalStorage(items) {
-  localStorage.setItem('workouts', JSON.stringify(items));
-}
-
-function loadFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem('workouts');
-    return raw ? JSON.parse(raw) : [];
-  } catch (error) {
-    console.error('Пошкоджені дані в localStorage:', error);
-    return [];
-  }
-}
-
-function syncLocalStorage(items) {
-  saveToLocalStorage(items);
-}
 
 const DB_NAME = 'WorkoutDB';
 const DB_VERSION = 1;
@@ -40,7 +20,6 @@ function openDB() {
     if (!window.indexedDB) {
       return reject(new Error('IndexedDB недоступна в цьому браузері.'));
     }
-
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
@@ -75,13 +54,11 @@ async function getAllItemsDB() {
   });
 }
 
-// Пошук за ID
-async function getItemByID(id) {
+async function getItemById(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly');
-    const numericId = !isNaN(Number(id)) ? Number(id) : id;
-    const request = tx.objectStore(STORE_NAME).get(numericId);
+    const request = tx.objectStore(STORE_NAME).get(Number(id));
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -91,11 +68,24 @@ async function deleteItemDB(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
-    const numericId = !isNaN(Number(id)) ? Number(id) : id;
-    tx.objectStore(STORE_NAME).delete(numericId);
+    tx.objectStore(STORE_NAME).delete(id);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+function saveToLocalStorage(items) {
+  localStorage.setItem('workouts', JSON.stringify(items));
+}
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem('workouts');
+    return raw ? JSON.parse(raw) : [];
+  } catch (error) {
+    console.error('Пошкоджені дані в localStorage:', error);
+    return [];
+  }
 }
 
 async function migrateFromLocalStorage() {
@@ -109,77 +99,13 @@ async function migrateFromLocalStorage() {
     for (const item of localData) {
       await addItemDB(item);
     }
-    console.log('Міграцію з localStorage в IndexedDB успішно виконано');
   }
-
   localStorage.setItem('migratedWorkouts', 'true');
 }
 
-let vm = null;
-let appInstance = null; // Посилання на Vue App для розмонтування
-
-const WorkoutRow = {
-  props: ['id', 'type', 'minutes', 'calories', 'details'],
-  computed: {
-    caloriesPerMinute() {
-      if (this.minutes > 0 && this.calories > 0) {
-        return (this.calories / this.minutes).toFixed(1);
-      }
-      return null;
-    },
-    lengthClass() {
-      return this.minutes > 45 ? 'long' : 'short';
-    }
-  },
-  methods: {
-    async removeSelf() {
-      await deleteItemDB(this.id);
-      await refreshUI();
-    }
-  },
-  template: `
-  <article :class="lengthClass" :data-calories="calories">
-    <h3>{{ type }}</h3>
-    <p v-if="details">{{ details }}</p>
-    <p v-else>{{ minutes }} хв, {{ calories }} ккал</p>
-    <p v-if="caloriesPerMinute">{{ caloriesPerMinute }} ккал/хв</p>
-    <a :href="'/workouts/' + id" data-link class="btn-primary" style="display:inline-block; margin-top:5px; margin-right:8px; text-decoration:none; font-size:0.85em; padding:4px 8px;">Детальніше</a>
-    <button type="button" class="btn-delete" @click="removeSelf">Видалити</button>
-  </article>`
-};
-
-function mountVueApp() {
-  const appEl = document.querySelector('#app');
-  if (!appEl) return;
-
-  if (appInstance) {
-    appInstance.unmount();
-    appInstance = null;
-    vm = null;
-  }
-
-  appInstance = Vue.createApp({
-    components: { WorkoutRow },
-    data() {
-      return { workouts: [] };
-    },
-    computed: {
-      totalCalories() {
-        return this.workouts.reduce((sum, w) => sum + (w.calories || 0), 0);
-      }
-    }
-  });
-
-  vm = appInstance.mount('#app');
-}
-
 function getWorkoutDate(w) {
-  if (w.date) {
-    return new Date(w.date + 'T00:00:00');
-  }
-  if (w.id > 1e12) {
-    return new Date(w.id);
-  }
+  if (w.date) return new Date(w.date + 'T00:00:00');
+  if (w.id > 1e12) return new Date(w.id);
   return null;
 }
 
@@ -196,17 +122,17 @@ function getMinutesByWeekday(workouts) {
 
 function drawChart(workouts) {
   const chartCanvas = document.querySelector('#workoutChart');
-  if (!chartCanvas) return; // Захист від помилок, якщо Canvas не в DOM
+  if (!chartCanvas) return;
   const ctx = chartCanvas.getContext('2d');
 
-  const totals = getMinutesByWeekday(workouts);
   const padding = { top: 30, right: 20, bottom: 40, left: 20 };
   const chartWidth = chartCanvas.width - padding.left - padding.right;
   const chartHeight = chartCanvas.height - padding.top - padding.bottom;
 
   ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-
+  const totals = getMinutesByWeekday(workouts);
   const maxValue = Math.max(...totals);
+
   if (maxValue === 0) {
     ctx.fillStyle = '#777';
     ctx.font = '16px sans-serif';
@@ -244,95 +170,63 @@ function drawChart(workouts) {
   });
 }
 
+let vueApp = null;
+let vm = null;
+
+const WorkoutRow = {
+  props: ['id', 'type', 'minutes', 'calories', 'details'],
+  computed: {
+    caloriesPerMinute() {
+      return (this.minutes > 0 && this.calories > 0) ? (this.calories / this.minutes).toFixed(1) : null;
+    },
+    lengthClass() {
+      return this.minutes > 45 ? 'long' : 'short';
+    }
+  },
+  methods: {
+    async removeSelf() {
+      await deleteItemDB(this.id);
+      await refreshUI();
+    }
+  },
+  template: `
+    <article :class="lengthClass" :data-calories="calories">
+      <h3>
+        <a :href="'/workouts/' + id" data-link>{{ type }}</a>
+      </h3>
+      <p v-if="details">{{ details }}</p>
+      <p v-else>{{ minutes }} хв, {{ calories }} ккал</p>
+      <p v-if="caloriesPerMinute">{{ caloriesPerMinute }} ккал/хв</p>
+      <button type="button" class="btn-delete" @click="removeSelf">Видалити</button>
+    </article>`
+};
+
+function mountVueApp() {
+  if (vueApp) {
+    vueApp.unmount();
+  }
+  vueApp = Vue.createApp({
+    components: { WorkoutRow },
+    data() {
+      return { workouts: [] };
+    },
+    computed: {
+      totalCalories() {
+        return this.workouts.reduce((sum, w) => sum + (w.calories || 0), 0);
+      }
+    }
+  });
+  vm = vueApp.mount('#app');
+}
+
 async function refreshUI() {
   const items = await getAllItemsDB();
-  if (vm && document.querySelector('#app')) {
-    vm.workouts = items;
-  }
-  syncLocalStorage(items);
+  if (vm) vm.workouts = items;
+  saveToLocalStorage(items);
   drawChart(items);
 }
 
-function showErrorMessage(message) {
-  const errorEl = document.querySelector('#error');
-  if (errorEl) {
-    errorEl.textContent = message;
-    errorEl.hidden = false;
-  }
-}
-
-function bindFormEvents() {
-  const form = document.querySelector('.workout-form');
-  const typeInput = document.querySelector('#workout-type');
-  const dateInput = document.querySelector('#workout-date');
-  const minutesInput = document.querySelector('#workout-minutes');
-  const caloriesInput = document.querySelector('#workout-calories');
-  const calcResultElem = document.querySelector('#calories-per-minute');
-
-  if (dateInput) dateInput.valueAsDate = new Date();
-
-  if (form) {
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const newWorkout = {
-        id: Date.now(),
-        type: typeInput.value,
-        minutes: Number(minutesInput.value),
-        calories: Number(caloriesInput.value),
-        date: dateInput.value
-      };
-
-      await addItemDB(newWorkout);
-      await refreshUI();
-
-      form.reset();
-      if (dateInput) dateInput.valueAsDate = new Date();
-      if (calcResultElem) calcResultElem.textContent = '0';
-    });
-  }
-
-  const refreshBtn = document.querySelector('#refreshBtn');
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', loadWorkouts);
-  }
-}
-
-async function loadWorkouts() {
-  const loadingEl = document.querySelector('#loading');
-  const refreshBtn = document.querySelector('#refreshBtn');
-  if (loadingEl) loadingEl.hidden = false;
-  if (refreshBtn) refreshBtn.disabled = true;
-
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error(`Код: ${response.status}`);
-    const data = await response.json();
-
-    for (const item of data) {
-      await addItemDB({
-        id: item.id,
-        type: item.type,
-        minutes: item.minutes,
-        calories: item.calories,
-        details: item.details || 'З власного API',
-        date: item.date
-      });
-    }
-    await refreshUI();
-  } catch (error) {
-    showErrorMessage('Журнал тренувань недоступний офлайн');
-  } finally {
-    if (loadingEl) loadingEl.hidden = true;
-    if (refreshBtn) refreshBtn.disabled = false;
-  }
-}
-
-// маршрутизація та рендеринг сторінок
-
-let rootContainer = null;
-
-// Пошук маршруту та параметрів
+// --- SPA РОУТЕР (History API) ---
 const routes = [
   { path: '/', view: renderWorkoutList },
   { path: '/workouts/:id', view: renderWorkoutDetail },
@@ -344,7 +238,6 @@ function matchRoute(path) {
 
   for (const route of routes) {
     const routeParts = route.path.split('/').filter(Boolean);
-
     if (routeParts.length !== pathParts.length) continue;
 
     const params = {};
@@ -361,91 +254,95 @@ function matchRoute(path) {
   return null;
 }
 
-// Очищення перед зміною сторінки
-function clearCurrentView() {
-  if (appInstance) {
-    appInstance.unmount();
-    appInstance = null;
-    vm = null;
+function navigate(path) {
+  window.history.pushState(null, '', path);
+  router();
+}
+
+async function router() {
+  const rootContainer = document.querySelector('#app-root');
+  if (!rootContainer) return;
+
+  const path = window.location.pathname;
+  const match = matchRoute(path);
+
+  if (match) {
+    await match.view(match.params);
+  } else {
+    renderNotFound();
   }
 }
 
+// --- VIEW ФУНКЦІЇ ---
 async function renderWorkoutList() {
-  clearCurrentView();
-
+  const rootContainer = document.querySelector('#app-root');
   rootContainer.innerHTML = `
     <div class="layout">
-        <main>
-            <section id="workout-form">
-                <h2>Форма додавання тренування</h2>
-                <form class="workout-form">
-                    <div class="form-group">
-                        <label for="workout-type">Тип тренування</label>
-                        <select id="workout-type" name="workout-type" required>
-                            <option value="">-- Оберіть тип --</option>
-                            <option value="Силове">Силове</option>
-                            <option value="Кардіо">Кардіо</option>
-                            <option value="Біг">Біг</option>
-                            <option value="Йога">Йога</option>
-                        </select>
-                    </div>
+      <main>
+        <section id="workout-form">
+          <h2>Форма додавання тренування</h2>
+          <form class="workout-form">
+            <div class="form-group">
+              <label for="workout-type">Тип тренування</label>
+              <select id="workout-type" name="workout-type" required>
+                <option value="">-- Оберіть тип --</option>
+                <option value="Силове">Силове</option>
+                <option value="Кардіо">Кардіо</option>
+                <option value="Біг">Біг</option>
+                <option value="Йога">Йога</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="workout-date">Дата</label>
+              <input type="date" id="workout-date" name="workout-date" required>
+            </div>
+            <div class="form-group">
+              <label for="workout-minutes">Тривалість (хвилин)</label>
+              <input type="number" id="workout-minutes" name="workout-minutes" placeholder="Наприклад: 45" required>
+            </div>
+            <div class="form-group">
+              <label for="workout-calories">Спалені калорії (ккал)</label>
+              <input type="number" id="workout-calories" name="workout-calories" placeholder="Наприклад: 300" required>
+            </div>
+            <button type="submit" class="btn-primary">Додати тренування</button>
+          </form>
+        </section>
 
-                    <div class="form-group">
-                        <label for="workout-date">Дата</label>
-                        <input type="date" id="workout-date" name="workout-date" required>
-                    </div>
+        <section id="workout-list">
+          <h2>Історія тренувань</h2>
+          <button id="refreshBtn" type="button" class="btn-primary">Оновити з API</button>
+          <div id="loading" hidden>Завантаження...</div>
+          <div id="error" hidden style="color: red;"></div>
 
-                    <div class="form-group">
-                        <label for="workout-minutes">Тривалість (хвилин)</label>
-                        <input type="number" id="workout-minutes" name="workout-minutes" min="1" required placeholder="Наприклад: 45">
-                    </div>
+          <div id="app">
+            <workout-row
+              v-for="item in workouts"
+              :key="item.id"
+              :id="item.id"
+              :type="item.type"
+              :minutes="item.minutes"
+              :calories="item.calories"
+              :details="item.details"
+            ></workout-row>
+            <p id="total-calories">Загалом спалено калорій: {{ totalCalories }}</p>
+          </div>
+        </section>
 
-                    <div class="form-group">
-                        <label for="workout-calories">Спалені калорії (ккал)</label>
-                        <input type="number" id="workout-calories" name="workout-calories" min="1" required placeholder="Наприклад: 300">
-                    </div>
-
-                    <button type="submit" class="btn-primary">Додати тренування</button>
-                </form>
-            </section>
-
-            <section id="list-of-workouts">
-                <h2>Історія тренувань</h2>
-                <button id="refreshBtn" type="button" class="btn-primary">Оновити з API</button>
-                <p id="loading" hidden>Завантаження…</p>
-                <p id="error" hidden></p>
-
-                <section id="chart-section">
-                    <h2>Тривалість тренувань за днями тижня</h2>
-                    <canvas id="workoutChart" width="600" height="300"></canvas>
-                </section>
-
-                <div id="app">
-                    <div class="cards">
-                        <workout-row
-                            v-for="w in workouts"
-                            :key="w.id"
-                            :id="w.id"
-                            :type="w.type"
-                            :minutes="w.minutes"
-                            :calories="w.calories"
-                            :details="w.details">
-                        </workout-row>
-                    </div>
-                    <p id="total-calories">Загалом спалено калорій: {{ totalCalories }}</p>
-                </div>
-            </section>
-        </main>
+        <section id="chart-section">
+          <h2>Тривалість тренувань за днями тижня</h2>
+          <canvas id="workoutChart" width="600" height="300"></canvas>
+        </section>
+      </main>
     </div>`;
 
   mountVueApp();
-  bindFormEvents();
+  bindEvents();
   await refreshUI();
 }
 
 async function renderWorkoutDetail(params) {
-  clearCurrentView();
-  const workout = await getItemByID(params.id);
+  const rootContainer = document.querySelector('#app-root');
+  const workout = await getItemById(params.id);
 
   if (!workout) {
     renderNotFound();
@@ -454,7 +351,7 @@ async function renderWorkoutDetail(params) {
 
   rootContainer.innerHTML = `
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #fff;">
-      <h2> Деталі тренування #${workout.id}</h2>
+      <h2>Деталі тренування #${workout.id}</h2>
       <hr>
       <p><strong>Вид тренування:</strong> ${workout.type}</p>
       <p><strong>Тривалість:</strong> ${workout.minutes} хвилин</p>
@@ -467,77 +364,101 @@ async function renderWorkoutDetail(params) {
 }
 
 async function renderStats() {
-  clearCurrentView();
+  const rootContainer = document.querySelector('#app-root');
   const workouts = await getAllItemsDB();
+
   const totalMinutes = workouts.reduce((sum, w) => sum + (Number(w.minutes) || 0), 0);
   const totalCalories = workouts.reduce((sum, w) => sum + (Number(w.calories) || 0), 0);
 
   rootContainer.innerHTML = `
-    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #2f7d32; border-radius: 8px; background: #f9f9f9;">
-      <h2> Загальна статистика занять</h2>
+    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #2f7d32; border-radius: 8px;">
+      <h2>Загальна статистика занять</h2>
       <p>Кількість тренувань: <strong>${workouts.length}</strong></p>
       <p>Сумарний час: <strong>${totalMinutes} хв</strong> (${(totalMinutes / 60).toFixed(1)} год)</p>
       <p>Спалено калорій: <strong>${totalCalories} ккал</strong></p>
       <br>
-      <a href="/" data-link class="btn-primary" style="text-decoration:none; padding:8px 15px;">← На головну</a>
+      <a href="/" data-link class="btn-primary" style="text-decoration:none;">← На головну</a>
     </div>`;
 }
 
 function renderNotFound() {
-  clearCurrentView();
+  const rootContainer = document.querySelector('#app-root');
   rootContainer.innerHTML = `
-    <div style="max-width: 600px; margin: 50px auto; text-align: center; width: 100%;">
+    <div style="text-align: center; margin-top: 50px;">
       <h1 style="color: red;">404 - Сторінку не знайдено</h1>
       <p>Зазначений шлях відсутній у застосунку.</p>
-      <a href="/" data-link class="btn-primary" style="text-decoration:none; display:inline-block; margin-top:10px;">Повернутися на головну</a>
+      <a href="/" data-link class="btn-primary" style="text-decoration:none;">Повернутися на головну</a>
     </div>`;
 }
 
-async function router() {
-  let path = window.location.pathname;
+function bindEvents() {
+  const form = document.querySelector('.workout-form');
+  const dateInput = document.querySelector('#workout-date');
+  if (dateInput) dateInput.valueAsDate = new Date();
 
-  if (path.endsWith('index.html') || path === '') {
-    path = '/';
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const newWorkout = {
+        id: Date.now(),
+        type: document.querySelector('#workout-type').value,
+        minutes: Number(document.querySelector('#workout-minutes').value),
+        calories: Number(document.querySelector('#workout-calories').value),
+        date: dateInput.value
+      };
+      await addItemDB(newWorkout);
+      await refreshUI();
+      form.reset();
+      if (dateInput) dateInput.valueAsDate = new Date();
+    });
   }
 
-  const match = matchRoute(path);
-
-  if (match) {
-    await match.view(match.params);
-  } else {
-    renderNotFound();
+  const refreshBtn = document.querySelector('#refreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`Код: ${response.status}`);
+        const data = await response.json();
+        for (const item of data) {
+          await addItemDB({
+            id: item.id,
+            type: item.title,
+            minutes: 30,
+            calories: item.completed ? 300 : 150,
+            details: item.completed ? 'Виконано' : 'Не виконано',
+            date: new Date().toISOString().slice(0, 10)
+          });
+        }
+        await refreshUI();
+      } catch (error) {
+        console.error('Помилка API:', error);
+      }
+    });
   }
 }
 
-// Перехід без перезавантаження
-function navigate(path) {
-  window.history.pushState(null, '', path);
-  router();
-}
+// --- ГЛОБАЛЬНІ СЛУХАЧІ ІНІЦІАЛІЗАЦІЇ ---
+window.addEventListener('popstate', router);
 
 document.addEventListener('click', (event) => {
   const link = event.target.closest('a[data-link]');
   if (link) {
-    event.preventDefault(); // скасування перезавантаження сторінки
+    event.preventDefault();
     navigate(link.getAttribute('href'));
   }
 });
 
-window.addEventListener('popstate', router);
-
 async function initApp() {
-  rootContainer = document.getElementById('app-root');
   try {
     if (!localStorage.getItem('workouts')) {
       saveToLocalStorage(initialWorkouts);
     }
     await migrateFromLocalStorage();
 
-    let items = await getAllItemsDB();
+    const items = await getAllItemsDB();
     if (items.length === 0) {
-      for (const item of initialWorkouts) {
-        await addItemDB(item);
-      }
+      await Promise.all(initialWorkouts.map(item => addItemDB(item)));
     }
 
     await router();

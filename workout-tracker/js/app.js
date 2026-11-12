@@ -1,6 +1,6 @@
 console.log('app.js підключено (SPA Mode)');
 
-const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
+const API_URL = '/api/workouts';
 
 // Початкові дані
 const initialWorkouts = [
@@ -11,9 +11,7 @@ const initialWorkouts = [
 
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
 
-// ==========================================
-// 1. LOCALSTORAGE ТА INDEXEDDB
-// ==========================================
+
 function saveToLocalStorage(items) {
   localStorage.setItem('workouts', JSON.stringify(items));
 }
@@ -77,7 +75,7 @@ async function getAllItemsDB() {
   });
 }
 
-// Пошук за ID (із приведенням типів для гарантії знаходження)
+// Пошук за ID
 async function getItemByID(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -117,9 +115,6 @@ async function migrateFromLocalStorage() {
   localStorage.setItem('migratedWorkouts', 'true');
 }
 
-// ==========================================
-// 2. VUE ТА ГРАФІКА CANVAS
-// ==========================================
 let vm = null;
 let appInstance = null; // Посилання на Vue App для розмонтування
 
@@ -143,21 +138,20 @@ const WorkoutRow = {
     }
   },
   template: `
-    <article :class="lengthClass" :data-calories="calories">
-      <h3>{{ type }}</h3>
-      <p v-if="details">{{ details }}</p>
-      <p v-else>{{ minutes }} хв, {{ calories }} ккал</p>
-      <p v-if="caloriesPerMinute">{{ caloriesPerMinute }} ккал/хв</p>
-      <a :href="'/workouts/' + id" data-link class="btn-primary" style="display:inline-block; margin-top:5px; text-decoration:none; font-size:0.85em; padding:4px 8px;">Детальніше</a>
-      <button type="button" class="btn-delete" @click="removeSelf">Видалити</button>
-    </article>`
+  <article :class="lengthClass" :data-calories="calories">
+    <h3>{{ type }}</h3>
+    <p v-if="details">{{ details }}</p>
+    <p v-else>{{ minutes }} хв, {{ calories }} ккал</p>
+    <p v-if="caloriesPerMinute">{{ caloriesPerMinute }} ккал/хв</p>
+    <a :href="'/workouts/' + id" data-link class="btn-primary" style="display:inline-block; margin-top:5px; margin-right:8px; text-decoration:none; font-size:0.85em; padding:4px 8px;">Детальніше</a>
+    <button type="button" class="btn-delete" @click="removeSelf">Видалити</button>
+  </article>`
 };
 
 function mountVueApp() {
   const appEl = document.querySelector('#app');
   if (!appEl) return;
 
-  // Безопечне розмонтування попереднього екземпляра Vue
   if (appInstance) {
     appInstance.unmount();
     appInstance = null;
@@ -318,11 +312,11 @@ async function loadWorkouts() {
     for (const item of data) {
       await addItemDB({
         id: item.id,
-        type: item.title,
-        minutes: 30,
-        calories: item.completed ? 300 : 150,
-        details: item.completed ? 'Виконано' : 'Не виконано',
-        date: new Date().toISOString().slice(0, 10)
+        type: item.type,
+        minutes: item.minutes,
+        calories: item.calories,
+        details: item.details || 'З власного API',
+        date: item.date
       });
     }
     await refreshUI();
@@ -334,12 +328,11 @@ async function loadWorkouts() {
   }
 }
 
-// ==========================================
-// 3. МАРШРУТИЗАЦІЯ (SPA ROUTER)
-// ==========================================
+// маршрутизація та рендеринг сторінок
 
 let rootContainer = null;
 
+// Пошук маршруту та параметрів
 const routes = [
   { path: '/', view: renderWorkoutList },
   { path: '/workouts/:id', view: renderWorkoutDetail },
@@ -461,7 +454,7 @@ async function renderWorkoutDetail(params) {
 
   rootContainer.innerHTML = `
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #fff;">
-      <h2>🏋️ Деталі тренування #${workout.id}</h2>
+      <h2> Деталі тренування #${workout.id}</h2>
       <hr>
       <p><strong>Вид тренування:</strong> ${workout.type}</p>
       <p><strong>Тривалість:</strong> ${workout.minutes} хвилин</p>
@@ -481,7 +474,7 @@ async function renderStats() {
 
   rootContainer.innerHTML = `
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #2f7d32; border-radius: 8px; background: #f9f9f9;">
-      <h2>📊 Загальна статистика занять</h2>
+      <h2> Загальна статистика занять</h2>
       <p>Кількість тренувань: <strong>${workouts.length}</strong></p>
       <p>Сумарний час: <strong>${totalMinutes} хв</strong> (${(totalMinutes / 60).toFixed(1)} год)</p>
       <p>Спалено калорій: <strong>${totalCalories} ккал</strong></p>
@@ -493,10 +486,10 @@ async function renderStats() {
 function renderNotFound() {
   clearCurrentView();
   rootContainer.innerHTML = `
-    <div style="text-align: center; margin-top: 50px;">
+    <div style="max-width: 600px; margin: 50px auto; text-align: center; width: 100%;">
       <h1 style="color: red;">404 - Сторінку не знайдено</h1>
       <p>Зазначений шлях відсутній у застосунку.</p>
-      <a href="/" data-link class="btn-primary" style="text-decoration:none;">Повернутися на головну</a>
+      <a href="/" data-link class="btn-primary" style="text-decoration:none; display:inline-block; margin-top:10px;">Повернутися на головну</a>
     </div>`;
 }
 
@@ -516,6 +509,7 @@ async function router() {
   }
 }
 
+// Перехід без перезавантаження
 function navigate(path) {
   window.history.pushState(null, '', path);
   router();
@@ -524,7 +518,7 @@ function navigate(path) {
 document.addEventListener('click', (event) => {
   const link = event.target.closest('a[data-link]');
   if (link) {
-    event.preventDefault();
+    event.preventDefault(); // скасування перезавантаження сторінки
     navigate(link.getAttribute('href'));
   }
 });

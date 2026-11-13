@@ -370,6 +370,14 @@ function clearCurrentView() {
   }
 }
 
+// Функція для безпечного екранування HTML-символів (захист від XSS)
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
 async function renderWorkoutList() {
   clearCurrentView();
 
@@ -444,8 +452,8 @@ async function renderWorkoutList() {
 }
 
 async function renderWorkoutDetail(params) {
-  clearCurrentView();
-  const workout = await getItemByID(params.id);
+  const rootContainer = document.querySelector('#app-root');
+  const workout = await getItemById(params.id);
 
   if (!workout) {
     renderNotFound();
@@ -454,13 +462,13 @@ async function renderWorkoutDetail(params) {
 
   rootContainer.innerHTML = `
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #fff;">
-      <h2> Деталі тренування #${workout.id}</h2>
+      <h2>Деталі тренування #${escapeHtml(workout.id)}</h2>
       <hr>
-      <p><strong>Вид тренування:</strong> ${workout.type}</p>
-      <p><strong>Тривалість:</strong> ${workout.minutes} хвилин</p>
-      <p><strong>Спалено калорій:</strong> ${workout.calories} ккал</p>
-      <p><strong>Дата:</strong> ${workout.date || 'Не вказана'}</p>
-      <p><strong>Нотатки/Деталі:</strong> ${workout.details || 'Відсутні'}</p>
+      <p><strong>Вид тренування:</strong> ${escapeHtml(workout.type)}</p>
+      <p><strong>Тривалість:</strong> ${escapeHtml(workout.minutes)} хвилин</p>
+      <p><strong>Спалено калорій:</strong> ${escapeHtml(workout.calories)} ккал</p>
+      <p><strong>Дата:</strong> ${escapeHtml(workout.date || 'Не вказана')}</p>
+      <p><strong>Нотатки/Деталі:</strong> ${escapeHtml(workout.details || 'Відсутні')}</p>
       <br>
       <a href="/" data-link class="btn-primary" style="text-decoration:none; padding:8px 15px;">← Повернутися до журналу</a>
     </div>`;
@@ -481,6 +489,16 @@ async function renderStats() {
       <br>
       <a href="/" data-link class="btn-primary" style="text-decoration:none; padding:8px 15px;">← На головну</a>
     </div>`;
+}
+
+async function getItemById(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const request = tx.objectStore(STORE_NAME).get(Number(id));
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
 function renderNotFound() {
